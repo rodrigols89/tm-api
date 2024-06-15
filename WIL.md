@@ -5,19 +5,66 @@
 
 ## Conteúdo
 
-
  - **FastAPI Settings & Management:**
    - Como iniciar o servidor a partir do FastAPI `(fastapi dev app.py)`
+   - Swagger UI (http://127.0.0.1:8000/docs)
+   - Redoc (http://127.0.0.1:8000/redoc)
    - [Entendendo o "Uvicorn"](#intro-to-uvicorn)
-   - [](#)
-   - [](#)
  - **Project Settings:**
    - [Como abrir um script no modo Interativo](#py-interactive-mode)
    - [Como criar grupos na instalação do Poetry (---group)](#poetry-group)
    - [Como configurar o "Ruff" para analisar o seu código](#ruff-settings)
-   - [Entendendo os comandos "Ruff"](#ruff-commands)
-   - [](#)
-   - [](#)
+   - [Entendendo comandos "Ruff"](#ruff-commands)
+ - **CRUD:**
+   - **POST (CREATE):**
+     - [Como criar um usuário com FastAPI](#create-user)
+     - [Problema de segurança (com retornos) do método POST](#post-problem)
+   - **GET (READ):**
+   - **PUT (UPDATE):**
+   - **DELETE (DELETE):**
+ - **Validação:**
+<!--- 
+[WHITESPACE RULES]
+- Same topic = "10" Whitespace character.
+- Different topic = "50" Whitespace character.
+--->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -47,6 +94,60 @@
  - Sempre que usarmos o fastapi para inicializar a aplicação no shell, ele faz uma chamada interna para inicializar o uvicorn. Por esse motivo ele aparece nas respostas HTTP e também na execução do comando.
 
 ---
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -154,7 +255,7 @@ quote-style = 'single'
 
 <div id="ruff-commands"></div>
 
-## Entendendo os comandos "Ruff"
+## Entendendo comandos "Ruff"
 
 Nós criamos vários comandos Ruff com o Taskipy. Agora vamos ver e entender eles:
 
@@ -174,7 +275,225 @@ Os comandos definidos fazem o seguinte:
    - `ruff check . --fix`: Faz algumas correções de boas práticas automaticamente.
    - `ruff format`: Executa a formatação do código em relação as convenções de estilo de código
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--- ( CRUD = POST(CREATE), GET(READ), PUT(UPDATE), DELETE(DELETE) ) --->
+
 ---
+
+<div id="create-user"></div>
+
+## Como criar um usuário com FastAPI
+
+Seguindo a lógica dos métodos HTTP para criar um usuário no FastAPI precisamos criar um endpoint `POST`:
+
+```python
+# app.py
+from http import HTTPStatus
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.post("/users/", status_code=HTTPStatus.CREATED)
+def create_user():
+    ...
+```
+
+Veja que no código acima:
+
+ - Utilizamos o decorador `@app.post` para dizer que é um método HTTP `POST`.
+ - Criamos um endpoint chamado `/users/` que vai receber um `JSON` como resposta.
+ - `status_code=HTTPStatus.CREATED:`
+   - É crucial definir que, ao cadastrar um usuário com sucesso, o sistema deve retornar o código de resposta `201 CREATED`, indicando a criação bem-sucedida do recurso.
+
+> **NOTE:**  
+> Porém o nosso endpoint ainda não diz quais campos terão nosso usuário (Lembre que isso pode ser salvo em um Banco de Dados).
+
+Para resolver isso vamos criar um schema com Pydantic:
+
+```python
+# schemas.py
+
+from pydantic import BaseModel
+
+
+class UserPublic(BaseModel):
+    username: str
+    email: str
+```
+
+Agora é só importar esse schema e utilizar ele como mapeamento do nosso endpoint:
+
+```python
+# app.py
+
+from tm_api.schemas import UserPublic
+
+from http import HTTPStatus
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.post("/users/", status_code=HTTPStatus.CREATED)
+def create_user(user: UserPublic):
+    ...
+```
+
+![img](images/user-endpoint-01.png) 
+
+> **NOTE:**  
+> Veja que nós não precisamos criar os campos do usuário. O Pydantic fez isso para nós. E nós apenas mapeamos para a nossa função `create_user(user: UserPublic)`.
+
+---
+
+<div id="post-problem"></div>
+
+## Problema de segurança (com retornos) do método POST
+
+> **Quando fazemos uma chamada com o método POST o esperado é que os *"dados criados sejam retornados ao cliente"*.**
+
+Levando em consideração a frase acima, qual o problema no endpoint abaixo?
+
+![img](images/valid-pass-01.png)  
+
+> **O endpoint acima retorna a senha do usuário e isso não é uma boa prática de segurança. É ideal não retornar a senha do usuário. Quanto menos ela trafegar na rede, melhor.**
+
+Desta forma, podemos criar um novo schema, porém, sem a senha:
+
+```python
+# schemas.py
+
+from pydantic import BaseModel, EmailStr
+
+
+class UserSchema(BaseModel):
+    username: str
+    email: EmailStr
+    password: str
+
+
+class UserPublic(BaseModel):
+    username: str
+    email: EmailStr
+```
+
+```python
+# app.py
+
+from tm_api.schemas import UserPublic, UserSchema
+
+from http import HTTPStatus
+from fastapi import FastAPI
+
+app = FastAPI()
+
+
+@app.post('/users/', status_code=HTTPStatus.CREATED, response_model=UserPublic)
+def create_user(user: UserSchema):
+    return user
+```
+
+![img](images/valid-pass-02.png)  
+
+Vejam que:
+
+ - **Agora nós temos 2 schemas:**
+   - O publico que será retornado no fim da requisição POST.
+   - E o normal para criação de dados (Tipo de demonstração).
+ - **NOTE:** Vejam que nós também utilizamos o parâmetro `response_model` e passamos como argumento `UserPublic`. Ou seja, esse será o retorno após uma requisição POST (sem a senha).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!--- ( Validação ) --->
+
+
+
+
+
+
+
 
 
 

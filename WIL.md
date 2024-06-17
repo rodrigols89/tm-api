@@ -22,7 +22,7 @@
    - [Entendendo o "Uvicorn"](#intro-to-uvicorn)
  - **Project Settings:**
    - [Como abrir um script no modo Interativo](#py-interactive-mode)
-   - [Como criar grupos na instalação do Poetry (---group)](#poetry-group)
+   - [Como criar grupos na hora de instalar bibliotecas com Poetry (--group)](#poetry-group)
    - [Como configurar o "Ruff" para analisar o seu código](#ruff-settings)
    - [Entendendo comandos "Ruff"](#ruff-commands)
 <!--- 
@@ -272,7 +272,7 @@ Os códigos de erro mais comuns que temos que conhecer para lidar com possíveis
 
 ## Como criar um usuário com FastAPI
 
-Seguindo a lógica dos métodos HTTP para criar um usuário no FastAPI precisamos criar um endpoint `POST`:
+Seguindo a lógica dos métodos HTTP para criar um usuário no FastAPI precisamos criar um endpoint **"POST"**:
 
 ```python
 # app.py
@@ -289,10 +289,10 @@ def create_user():
 
 Veja que no código acima:
 
- - Utilizamos o decorador `@app.post` para dizer que é um método HTTP `POST`.
- - Criamos um endpoint chamado `/users/` que vai receber um `JSON` como resposta.
- - `status_code=HTTPStatus.CREATED:`
-   - É crucial definir que, ao cadastrar um usuário com sucesso, o sistema deve retornar o código de resposta `201 CREATED`, indicando a criação bem-sucedida do recurso.
+ - Utilizamos o decorador `@app.post` para dizer que é um método HTTP **"POST"**.
+ - Criamos um endpoint chamado **/users/** que vai receber um **JSON** como resposta.
+ - **status_code=HTTPStatus.CREATED:**
+   - É crucial definir que, ao cadastrar um usuário com sucesso, o sistema deve retornar o código de resposta **201 CREATED**, indicando a criação bem-sucedida do recurso.
 
 > **NOTE:**  
 > Porém o nosso endpoint ainda não diz quais campos terão nosso usuário (Lembre que isso pode ser salvo em um Banco de Dados).
@@ -310,7 +310,7 @@ class UserPublic(BaseModel):
     email: str
 ```
 
-Agora é só importar esse schema e utilizar ele como mapeamento do nosso endpoint:
+Agora é só importar esse schema e utilizar como mapeamento do nosso endpoint:
 
 ```python
 # app.py
@@ -331,7 +331,7 @@ def create_user(user: UserPublic):
 ![img](images/user-endpoint-01.png) 
 
 > **NOTE:**  
-> Veja que nós não precisamos criar os campos do usuário. O Pydantic fez isso para nós. E nós apenas mapeamos para a nossa função `create_user(user: UserPublic)`.
+> Veja que nós não precisamos criar os campos do usuário. O Pydantic fez isso para nós. E nós apenas mapeamos para a nossa função **create_user(user: UserPublic)**.
 
 ---
 
@@ -345,7 +345,8 @@ Levando em consideração a frase acima, qual o problema no endpoint abaixo?
 
 ![img](images/valid-pass-01.png)  
 
-> **O endpoint acima retorna a senha do usuário e isso não é uma boa prática de segurança. É ideal não retornar a senha do usuário. Quanto menos ela trafegar na rede, melhor.**
+> **O endpoint acima retorna a senha do usuário e isso não é uma boa prática de segurança:**  
+> É ideal não retornar a senha do usuário. Quanto menos ela trafegar na rede, melhor.
 
 Desta forma, podemos criar um novo schema, porém, sem a senha:
 
@@ -387,9 +388,9 @@ def create_user(user: UserSchema):
 Vejam que:
 
  - **Agora nós temos 2 schemas:**
-   - O publico que será retornado no fim da requisição POST.
-   - E o normal para criação de dados (Tipo de demonstração).
- - **NOTE:** Vejam que nós também utilizamos o parâmetro `response_model` e passamos como argumento `UserPublic`. Ou seja, esse será o retorno após uma requisição POST (sem a senha).
+   - O publico que será retornado no fim da requisição **POST**.
+   - E o normal para demonstração na API.
+ - **NOTE:** Vejam que nós também utilizamos o parâmetro **response_model** e passamos como argumento **UserPublic**. Ou seja, esse será o retorno após uma requisição **POST** (sem a senha).
 
 
 
@@ -560,7 +561,7 @@ Vejam que:
 > Embora o FastAPI tenha uma aplicação de terminal que facilita a execução. Para podermos acessar essas APIs por um navegador ou de outras aplicações clientes, é necessário um servidor.
 
  - É aí que o *"Uvicorn"* entra em cena. *Ele atua como esse servidor*, disponibilizando a API do FastAPI em rede. Isso permite que a API seja acessada de outros dispositivos ou programas.
- - Sempre que usarmos o fastapi para inicializar a aplicação no shell, ele faz uma chamada interna para inicializar o uvicorn. Por esse motivo ele aparece nas respostas HTTP e também na execução do comando.
+ - Sempre que usarmos o FastAPI para inicializar a aplicação no shell, ele faz uma chamada interna para inicializar o uvicorn. Por esse motivo ele aparece nas respostas HTTP e também na execução do comando.
 
 
 
@@ -734,9 +735,9 @@ O interpretador do Python executa o código do arquivo e retorna o shell após e
 
 <div id="poetry-group"></div>
 
-## Como criar grupos na instalação do Poetry
+## Como criar grupos na hora de instalar bibliotecas com Poetry (--group)
 
-Ao instalar novas bibliotecas no nosso projeto, podemos especificar a qual grupo essas bibliotecas pertence. Para isso, basta adicionar a flag `--group` na hora da instalação:
+Ao instalar novas bibliotecas no nosso projeto, podemos especificar a qual grupo essas bibliotecas pertence. Para isso, basta adicionar a **flag --group** na hora da instalação:
 
 ```bash
 poetry add --group dev pytest@latest pytest-cov@latest taskipy@latest ruff@latest httpx@latest
@@ -751,6 +752,7 @@ poetry add --group dev pytest@latest pytest-cov@latest taskipy@latest ruff@lates
 ```toml
 [tool.ruff]
 line-length = 79
+extend-exclude = ['migrations']
 
 [tool.ruff.lint]
 preview = true
@@ -762,17 +764,17 @@ preview = true
 quote-style = 'single'
 ```
 
- - `[tool.ruff]: Configurações Globais do Ruff.`
+ - **[tool.ruff]: Configurações Globais do Ruff.**
    - `extend-exclude = ['migrations']  # Exclude migrations folder from linting.`
- - `[tool.ruff.lint]: Análise de Linter.`
+ - **[tool.ruff.lint]: Análise de Linter.**
    - **select:**
-     - `I` ([Isort](https://pycqa.github.io/isort/){:target="_blank"}): Checagem de ordenação de imports em ordem alfabética
-     - `F` ([Pyflakes](https://github.com/PyCQA/pyflakes){:target="_blank"}): Procura por alguns erros em relação a boas práticas de código
-     - `E` (Erros [pycodestyle](https://pycodestyle.pycqa.org/en/latest/){:target="_blank"}): Erros de estilo de código
-     - `W` (Avisos [pycodestyle](https://pycodestyle.pycqa.org/en/latest/){:target="_blank"}): Avisos de coisas não recomendadas no estilo de código
-     - `PL` ([Pylint](https://pylint.pycqa.org/en/latest/index.html){:target="_blank"}): Como o `F`, também procura por erros em relação a boas práticas de código
-     - `PT` ([flake8-pytest](https://pypi.org/project/flake8-pytest-style/){:target="_blank"}): Checagem de boas práticas do Pytest
- - `[tool.ruff.format]: Formatação (Formatter) do Ruff.`
+     - **I** [Isort](https://pycqa.github.io/isort/): Checagem de ordenação de imports em ordem alfabética.
+     - **F** [Pyflakes](https://github.com/PyCQA/pyflakes): Procura por alguns erros em relação a boas práticas de código.
+     - **E** [Erros (pycodestyle)](https://pycodestyle.pycqa.org/en/latest/): Erros de estilo de código.
+     - **W** [Avisos (pycodestyle)](https://pycodestyle.pycqa.org/en/latest/): Avisos de coisas não recomendadas no estilo de código.
+     - **PL** [Pylint](https://pylint.pycqa.org/en/latest/index.html): Como o `F`, também procura por erros em relação a boas práticas de código.
+     - **PT** [flake8-pytest](https://pypi.org/project/flake8-pytest-style/): Checagem de boas práticas do Pytest.
+ - **[tool.ruff.format]: Formatação (Formatter) do Ruff.**
    - **NOTE:** Lembrando que a opção de usar aspas simples é totalmente pessoal, você pode usar aspas duplas se quiser.
 
 ---
@@ -791,13 +793,19 @@ pre_test = 'task lint'
 
 Os comandos definidos fazem o seguinte:
 
- - **lint: Executa duas variações da checagem**
-   - `ruff check`: Mostra os códigos de infrações de boas práticas.
-   - `ruff check --diff`: Mostra o que precisa ser alterado no código para que as boas práticas sejam seguidas.
-   - `&&`: O duplo `&` faz com que a segunda parte do comando só seja executada se a primeira não der erro. Sendo assim, enquanto o `--diff` apresentar erros, ele não executará o `check`
- - **format: Executa duas variações da formatação**
-   - `ruff check . --fix`: Faz algumas correções de boas práticas automaticamente.
-   - `ruff format`: Executa a formatação do código em relação as convenções de estilo de código
+ - **lint: Executa duas variações da checagem.**
+   - **ruff check:**
+     - Mostra os códigos de infrações de boas práticas.
+   - **ruff check --diff:**
+     - Mostra o que precisa ser alterado no código para que as boas práticas sejam seguidas.
+   - `&&:`
+     - O duplo `&` faz com que a segunda parte do comando só seja executada se a primeira não der erro.
+     - Sendo assim, enquanto o **--diff** apresentar erros, ele não executará o **check**.
+ - **format: Executa duas variações da formatação.**
+   - **ruff check . --fix:**
+     - Faz algumas correções de boas práticas automaticamente.
+   - **ruff format:**
+     - Executa a formatação do código em relação as convenções de estilo de código.
 
 
 
